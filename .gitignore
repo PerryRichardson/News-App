@@ -1,0 +1,17 @@
+# --- Python / Virtual env ---
+.venv/
+__pycache__/
+*.py[cod]
+
+# --- Django ---
+db.sqlite3
+*.log
+media/
+
+# --- Environment variables (secrets) ---
+.env
+
+# --- VS Code / OS junk ---
+.vscode/
+.DS_Store
+Thumbs.db
