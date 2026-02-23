@@ -1,0 +1,27 @@
+{% extends "core/base.html" %}
+
+{% block title %}Journalists{% endblock %}
+
+{% block content %}
+  <h1>Journalists</h1>
+
+  <ul>
+    {% for journalist in journalists %}
+      <li>
+        <strong>{{ journalist.username }}</strong>
+        {% if journalist.id in followed_ids %}
+          (following)
+          <form method="post" action="{% url 'core:toggle_journalist_follow' journalist.id %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit">Unfollow</button>
+          </form>
+        {% else %}
+          <form method="post" action="{% url 'core:toggle_journalist_follow' journalist.id %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit">Follow</button>
+          </form>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}

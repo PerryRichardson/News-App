@@ -1,0 +1,15 @@
+{% extends "core/base.html" %}
+
+{% block title %}{{ article.title }}{% endblock %}
+
+{% block content %}
+  <p><a href="{% url 'core:article_list' %}">← Back</a></p>
+
+  <h1>{{ article.title }}</h1>
+  <p><strong>Publisher:</strong> {{ article.publisher.name }}</p>
+  <p><strong>Author:</strong> {{ article.author.username }}</p>
+
+  <hr />
+
+  <p>{{ article.body }}</p>
+{% endblock %}

@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>{% block title %}News App{% endblock %}</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 16px;
+        line-height: 1.4;
+      }
+
+      .nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding: 10px 0;
+      }
+
+      .nav-left,
+      .nav-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .nav-link {
+        text-decoration: none;
+        padding: 6px 8px;
+        border-radius: 6px;
+      }
+
+      .nav-link:hover {
+        background: #f2f2f2;
+      }
+
+      .badge {
+        font-size: 0.9rem;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #f2f2f2;
+      }
+
+      .btn {
+        padding: 7px 12px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        background: white;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+      }
+
+      .btn:hover {
+        background: #f7f7f7;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="nav">
+      <div class="nav-left">
+        <a class="nav-link" href="{% url 'core:article_list' %}">Home</a>
+
+        {% if user.is_authenticated %}
+          <a class="nav-link" href="{% url 'core:publisher_list' %}">Publishers</a>
+          <a class="nav-link" href="{% url 'core:journalist_list' %}">Journalists</a>
+          <a class="nav-link" href="{% url 'core:my_subscriptions' %}">My Subscriptions</a>
+
+          {% if user.role == "JOURNALIST" %}
+            <a class="nav-link" href="{% url 'core:journalist_dashboard' %}">Dashboard</a>
+          {% endif %}
+
+          {% if user.role == "EDITOR" %}
+            <a class="nav-link" href="{% url 'core:editor_queue' %}">Editor Queue</a>
+          {% endif %}
+        {% endif %}
+      </div>
+
+      <div class="nav-right">
+        {% if user.is_authenticated %}
+          <span class="badge">
+            {{ user.username }} • {{ user.role|title }}
+          </span>
+
+          <form method="post" action="{% url 'logout' %}" style="display:inline;">
+            {% csrf_token %}
+            <button class="btn" type="submit">Log out</button>
+          </form>
+        {% else %}
+          <a class="btn" href="{% url 'login' %}">Log in</a>
+          <a class="btn" href="{% url 'core:register' %}">Register</a>
+        {% endif %}
+      </div>
+    </nav>
+
+    <hr />
+
+    {% if messages %}
+      <ul>
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+      <hr />
+    {% endif %}
+
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>

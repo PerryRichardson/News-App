@@ -1,0 +1,35 @@
+{% extends "core/base.html" %}
+
+{% block title %}Editor Queue{% endblock %}
+
+{% block content %}
+  <h1>Pending Articles</h1>
+
+  {% if articles %}
+    <ul>
+      {% for article in articles %}
+        <li>
+          <h3>{{ article.title }}</h3>
+          <p><strong>Author:</strong> {{ article.author.username }}</p>
+          <p><strong>Publisher:</strong> {{ article.publisher.name }}</p>
+
+          <form method="post" action="{% url 'core:decide_article' article.pk %}">
+            {% csrf_token %}
+
+            <button type="submit" name="action" value="approve">Approve</button>
+            <button type="submit" name="action" value="reject">Reject</button>
+
+            <br /><br />
+
+            <label for="reason-{{ article.pk }}">Rejection reason (optional):</label><br />
+            <textarea id="reason-{{ article.pk }}" name="reason" rows="3" cols="50"></textarea>
+          </form>
+
+          <hr />
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No pending articles right now 🎉</p>
+  {% endif %}
+{% endblock %}

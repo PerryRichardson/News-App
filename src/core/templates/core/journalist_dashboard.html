@@ -1,0 +1,22 @@
+{% extends "core/base.html" %}
+
+{% block title %}Journalist Dashboard{% endblock %}
+
+{% block content %}
+  <h1>Journalist Dashboard</h1>
+
+  <p><a href="{% url 'core:create_article' %}">+ New Article</a></p>
+
+  <h2>My Articles</h2>
+  {% if articles %}
+    <ul>
+      {% for article in articles %}
+        <li>
+          {{ article.title }} — <strong>{{ article.get_status_display }}</strong>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No articles yet.</p>
+  {% endif %}
+{% endblock %}

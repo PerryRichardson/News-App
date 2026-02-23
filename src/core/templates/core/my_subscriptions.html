@@ -1,0 +1,45 @@
+{% extends "core/base.html" %}
+
+{% block title %}My Subscriptions{% endblock %}
+
+{% block content %}
+  <h1>My Subscriptions</h1>
+
+  <h2>Publishers</h2>
+  {% if publishers %}
+    <ul>
+      {% for publisher in publishers %}
+        <li>
+          {{ publisher.name }}
+          <form method="post"
+                action="{% url 'core:toggle_publisher_subscription' publisher.id %}"
+                style="display:inline;margin-left: 8px;">
+            {% csrf_token %}
+            <button class="btn" type="submit">Unsubscribe</button>  
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>You aren’t subscribed to any publishers yet.</p>
+  {% endif %}
+
+  <h2>Journalists</h2>
+  {% if journalists %}
+    <ul>
+      {% for journalist in journalists %}
+        <li>
+          {{ journalist.username }}
+          <form method="post"
+                action="{% url 'core:toggle_journalist_follow' journalist.id %}"
+                style="display:inline;margin-left: 8px;">
+            {% csrf_token %}    
+            <button class="btn" type="submit">Unfollow</button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>You aren’t following any journalists yet.</p>
+  {% endif %}
+{% endblock %}
