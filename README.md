@@ -62,6 +62,82 @@ X_API_URL = "https://api.x.com/2/tweets"
 - mysqlclient 2.2.x
 - HTML & CSS via Django templates
 ---
+
+## Getting Started (Step-by-step)
+
+These instructions assume **Windows + PowerShell**.
+
+### 1) Clone the repository
+```powershell
+git clone <REPO_URL>
+cd News-App
+```
+### 2) Activate virtual environment
+```
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+```
+### 3) Install dependencies
+```
+pip install -r requirements.txt
+```
+### 4) Database setup
+ 4.1) Ensure **MySQL/MariaDB** is running (default port is usually 3306)
+ 4.2) Create the database and user:
+```
+  CREATE DATABASE news_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+  CREATE USER 'news_user'@'localhost' IDENTIFIED BY 'strong_password_here';
+
+  GRANT ALL PRIVILEGES ON news_db.* TO 'news_user'@'localhost';
+
+  FLUSH PRIVILEGES;
+```
+ 4.3) Create the database and user:
+```
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "news_db",
+        "USER": "news_user",
+        "PASSWORD": "strong_password_here",
+        "HOST": "127.0.0.1",
+        "PORT": "3306",
+        "OPTIONS": {"charset": "utf8mb4"},
+    }
+}
+```
+### 5) Run the project:
+  #### 5.1) Apply migrations
+```
+cd src
+python manage.py migrate
+```
+  #### 5.2) Create admin user/superuser
+```
+python manage.py createsuperuser
+```
+  #### 5.3) Start server
+```
+python manage.py runserver
+```
+### 6) First-time Setup in the Admin Site:
+1) Go to `/admin/`
+2) Add Groups - Journalists/Editors/Readers/Publishers
+3) Create users for each role/group
+   -In /admim/, create users and set their role:
+     - Reader: subscribe + API access
+     - Journalist: Submit articles (PENDING)
+     - Editor: Approve/reject articles
+
+### 7) Run tests:
+- Run from `src` root
+```
+python manage.py test -v 2
+```
+---
+
 ## Once installed, view apps at:
 - http://127.0.0.1:8000/ → Home (approved articles)
 - http://127.0.0.1:8000/accounts/login/ → Login
