@@ -58,7 +58,7 @@ X_API_URL = "https://api.x.com/2/tweets"
 - Python 3.12.x (required for smooth mysqlclient on Windows)
 - Django 6.0.x
 - Django REST Framework
-- MariaDB 12.x (local dev) on port 3307 (chosen because 3306 was already in use)
+- MariaDB 12.x (local dev) on port 3306
 - mysqlclient 2.2.x
 - HTML & CSS via Django templates
 ---
@@ -72,7 +72,7 @@ These instructions assume **Windows + PowerShell**.
 git clone <REPO_URL>
 cd News-App
 ```
-### 2) Activate virtual environment
+### 2) Create + activate a virtual environment:
 ```
 py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
@@ -83,25 +83,27 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 ### 4) Database setup
- 4.1) Ensure **MySQL/MariaDB** is running (default port is usually 3306)
- 4.2) Create the database and user:
+ 4.1) Ensure your **MySQL/MariaDB** server is running locally
+ 4.2) Create the database and user (run in MySQL Workbench / admin client):
 ```
-  CREATE DATABASE news_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS news_db
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
 
-  CREATE USER 'news_user'@'localhost' IDENTIFIED BY 'strong_password_here';
+CREATE USER IF NOT EXISTS 'news_user'@'localhost'
+  IDENTIFIED BY 'StrongPassword123!';
 
-  GRANT ALL PRIVILEGES ON news_db.* TO 'news_user'@'localhost';
-
-  FLUSH PRIVILEGES;
+GRANT ALL PRIVILEGES ON news_db.* TO 'news_user'@'localhost';
+FLUSH PRIVILEGES;
 ```
- 4.3) Create the database and user:
+ 4.3) Update `settings.py`:
 ```
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "news_db",
         "USER": "news_user",
-        "PASSWORD": "strong_password_here",
+        "PASSWORD": "StrongPassword123!",
         "HOST": "127.0.0.1",
         "PORT": "3306",
         "OPTIONS": {"charset": "utf8mb4"},
@@ -109,32 +111,27 @@ DATABASES = {
 }
 ```
 ### 5) Run the project:
-  #### 5.1) Apply migrations
 ```
 cd src
 python manage.py migrate
-```
-  #### 5.2) Create admin user/superuser
-```
 python manage.py createsuperuser
-```
-  #### 5.3) Start server
-```
 python manage.py runserver
 ```
 ### 6) First-time Setup in the Admin Site:
-1) Go to `/admin/`
-2) Add Groups - Journalists/Editors/Readers/Publishers
-3) Create users for each role/group
-   -In /admim/, create users and set their role:
-     - Reader: subscribe + API access
-     - Journalist: Submit articles (PENDING)
-     - Editor: Approve/reject articles
+1) Visit `/admin/`
+2) Create Publishers (so Journalists can select one when posting)
+3) Create users and assign roles (Reader / Journalist / Editor)
 
 ### 7) Run tests:
-- Run from `src` root
+- Run from `src` folder
 ```
 python manage.py test -v 2
+```
+- If tests fail with database permission errors, ensure the DB user can create/drop the test DB:
+```
+GRANT CREATE, DROP ON *.* TO 'news_user'@'localhost';
+GRANT ALL PRIVILEGES ON `test\_%`.* TO 'news_user'@'localhost';
+FLUSH PRIVILEGES;
 ```
 ---
 
