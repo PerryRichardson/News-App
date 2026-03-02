@@ -21,6 +21,7 @@ urlpatterns = [
     ),
     path("journalist/", views.journalist_dashboard, name="journalist_dashboard"),
     path("journalist/new/", views.create_article, name="create_article"),
+    path("publishers/new/", views.create_publisher, name="create_publisher"),
     path("editor/", views.editor_queue, name="editor_queue"),
     path("editor/articles/<int:pk>/decide/", views.decide_article, name="decide_article"),
     path("accounts/register/", views.register, name="register"),

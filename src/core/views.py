@@ -1,3 +1,13 @@
+"""
+Views for the News App.
+
+This module contains Django view functions for:
+- reader browsing (home, article detail)
+- subscriptions (publishers, journalists, my subscriptions)
+- journalist workflows (dashboard, create article)
+- editor workflows (review queue, approve/reject)
+"""
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login
@@ -7,22 +17,32 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .forms import ArticleForm, RegistrationForm
+from .forms import ArticleForm, PublisherForm, RegistrationForm
 from .models import Article, Publisher, User
 from .services.x_client import post_article_to_x
 
 
 def register(request):
+    """
+    Register a new user account.
+
+   Behavior:
+    - Creates a user account and assigns a role based on the registration form.
+    - Role selection is limited to Reader/Journalist to prevent privilege escalation.
+
+    Args:
+        request: Django HttpRequest.
+
+    Returns:
+        HttpResponse: Rendered registration form or redirect on success.
+    """
     if request.user.is_authenticated:
         return redirect("core:article_list")
 
     if request.method == "POST":
         form = RegistrationForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.role = User.Role.READER
-            user.save()
-
+            user = form.save()
             login(request, user)
             return redirect("core:article_list")
     else:
@@ -32,6 +52,15 @@ def register(request):
 
 
 def article_list(request):
+    """
+    Display the public homepage article list (APPROVED only).
+
+    Args:
+        request: Django HttpRequest.
+
+    Returns:
+        HttpResponse: Rendered article list.
+    """
     articles = Article.objects.filter(status=Article.Status.APPROVED).order_by(
         "-created_at"
     )
@@ -39,12 +68,58 @@ def article_list(request):
 
 
 def article_detail(request, pk: int):
+    """
+    Display a single approved article by primary key.
+
+    Args:
+        request: Django HttpRequest.
+        pk (int): Article primary key.
+
+    Returns:
+        HttpResponse: Rendered article detail page.
+    """
     article = get_object_or_404(Article, pk=pk, status=Article.Status.APPROVED)
     return render(request, "core/article_detail.html", {"article": article})
 
+@login_required
+def create_publisher(request):
+    """
+    Editor-only view to create publishers that journalists can publish under.
+
+    Args:
+        request: Django HttpRequest.
+
+    Returns:
+        HttpResponse: Rendered create publisher form or redirect on success.
+
+    Raises:
+        HttpResponseForbidden: If user is not an editor.
+    """
+    if request.user.role != User.Role.EDITOR:
+        return HttpResponseForbidden("Only editors can create publishers.")
+
+    if request.method == "POST":
+        form = PublisherForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Publisher created.")
+            return redirect("core:publisher_list")
+    else:
+        form = PublisherForm()
+
+    return render(request, "core/create_publisher.html", {"form": form})
 
 @login_required
 def publisher_list(request):
+    """
+    List all publishers and show which ones the current user is subscribed to.
+
+    Args:
+        request: Django HttpRequest.
+
+    Returns:
+        HttpResponse: Rendered publisher list page.
+    """
     publishers = Publisher.objects.order_by("name")
     subscribed_ids = set(request.user.subscribed_publishers.values_list("id", flat=True))
     context = {"publishers": publishers, "subscribed_ids": subscribed_ids}
@@ -53,6 +128,18 @@ def publisher_list(request):
 
 @login_required
 def toggle_publisher_subscription(request, pk: int):
+    """
+    Subscribe/unsubscribe the current user to a publisher.
+
+    Expects POST. Non-POST requests are redirected back to publisher list.
+
+    Args:
+        request: Django HttpRequest.
+        pk (int): Publisher primary key.
+
+    Returns:
+        HttpResponseRedirect: Redirect back to publisher list.
+    """
     if request.method != "POST":
         return redirect("core:publisher_list")
 
@@ -68,6 +155,15 @@ def toggle_publisher_subscription(request, pk: int):
 
 @login_required
 def journalist_list(request):
+    """
+    List all journalists and show which ones the current user follows.
+
+    Args:
+        request: Django HttpRequest.
+
+    Returns:
+        HttpResponse: Rendered journalist list page.
+    """
     journalists = User.objects.filter(role=User.Role.JOURNALIST).order_by("username")
     followed_ids = set(request.user.subscribed_journalists.values_list("id", flat=True))
     context = {"journalists": journalists, "followed_ids": followed_ids}
@@ -76,6 +172,15 @@ def journalist_list(request):
 
 @login_required
 def my_subscriptions(request):
+    """
+    Display a summary of the current user's publisher subscriptions and journalist follows.
+
+    Args:
+        request: Django HttpRequest.
+
+    Returns:
+        HttpResponse: Rendered subscriptions page.
+    """
     publishers = request.user.subscribed_publishers.order_by("name")
     journalists = request.user.subscribed_journalists.order_by("username")
 
@@ -88,6 +193,18 @@ def my_subscriptions(request):
 
 @login_required
 def toggle_journalist_follow(request, pk: int):
+    """
+    Follow/unfollow a journalist user.
+
+    Expects POST. Non-POST requests are redirected back to journalist list.
+
+    Args:
+        request: Django HttpRequest.
+        pk (int): Journalist user primary key.
+
+    Returns:
+        HttpResponseRedirect: Redirect back to journalist list.
+    """
     if request.method != "POST":
         return redirect("core:journalist_list")
 
@@ -106,6 +223,18 @@ def toggle_journalist_follow(request, pk: int):
 
 @login_required
 def journalist_dashboard(request):
+    """
+    Journalist-only dashboard showing their submitted articles.
+
+    Args:
+        request: Django HttpRequest.
+
+    Returns:
+        HttpResponse: Rendered journalist dashboard.
+
+    Raises:
+        HttpResponseForbidden: If user is not a journalist.
+    """
     if request.user.role != User.Role.JOURNALIST:
         return HttpResponseForbidden("Only journalists can view this page.")
 
@@ -115,8 +244,25 @@ def journalist_dashboard(request):
 
 @login_required
 def create_article(request):
+    """
+    Journalist-only view to submit a new article (created as PENDING).
+
+    Args:
+        request: Django HttpRequest.
+
+    Returns:
+        HttpResponse: Rendered create form on GET; redirect on success.
+
+    Raises:
+        HttpResponseForbidden: If user is not a journalist.
+    """
     if request.user.role != User.Role.JOURNALIST:
         return HttpResponseForbidden("Only journalists can create articles.")
+    
+    Publisher.objects.get_or_create(
+    name="Independent",
+    defaults={"description": "Independent publisher"},
+)
 
     if request.method == "POST":
         form = ArticleForm(request.POST)
@@ -134,6 +280,18 @@ def create_article(request):
 
 @login_required
 def editor_queue(request):
+    """
+    Editor-only review queue showing all pending articles.
+
+    Args:
+        request: Django HttpRequest.
+
+    Returns:
+        HttpResponse: Rendered editor queue page.
+
+    Raises:
+        HttpResponseForbidden: If user is not an editor.
+    """
     if request.user.role != User.Role.EDITOR:
         return HttpResponseForbidden("Only editors can view this page.")
 
@@ -145,6 +303,22 @@ def editor_queue(request):
 
 @login_required
 def decide_article(request, pk: int):
+    """
+    Editor-only action endpoint to approve or reject an article.
+
+    - Approve: sets APPROVED, emails author, emails publisher subscribers, attempts X post
+    - Reject: sets REJECTED, saves reason, emails author
+
+    Args:
+        request: Django HttpRequest.
+        pk (int): Article primary key.
+
+    Returns:
+        HttpResponseRedirect: Redirect back to editor queue.
+
+    Raises:
+        HttpResponseForbidden: If user is not an editor.
+    """
     if request.user.role != User.Role.EDITOR:
         return HttpResponseForbidden("Only editors can review articles.")
 

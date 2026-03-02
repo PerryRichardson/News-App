@@ -1,3 +1,12 @@
+"""
+Test suite for the News App.
+
+These tests focus on:
+- Reader-only access control for DRF API endpoints
+- Correct filtering logic for subscription feeds
+- X posting hook is called on approval (mocked requests)
+"""
+
 from unittest.mock import patch
 
 from django.test import TestCase
@@ -8,7 +17,23 @@ from core.models import Article, Publisher, User
 
 
 class APIFeedTests(TestCase):
+    """
+    Tests for the DRF subscription feed endpoints.
+
+    Ensures that:
+    - endpoints require authentication
+    - endpoints are restricted to Reader users
+    - endpoints return only APPROVED articles
+    - feed endpoint returns a union without duplicates
+    """
+
     def setUp(self):
+        """
+        Create baseline test data used by multiple tests.
+
+        Returns:
+            None
+        """
         self.client = APIClient()
 
         self.reader = User.objects.create_user(
@@ -38,10 +63,22 @@ class APIFeedTests(TestCase):
         self.url_journalists = "/api/articles/journalists/"
 
     def test_api_requires_authentication(self):
+        """
+        Anonymous users should not be able to access the feed endpoint.
+
+        Returns:
+            None
+        """
         response = self.client.get(self.url_feed)
         self.assertIn(response.status_code, (401, 403))
 
     def test_api_reader_only_blocks_journalist_and_editor(self):
+        """
+        Journalists and editors should be blocked from reader-only endpoints.
+
+        Returns:
+            None
+        """
         self.client.login(username="journ1", password="pass12345")
         response = self.client.get(self.url_feed)
         self.assertEqual(response.status_code, 403)
@@ -52,6 +89,13 @@ class APIFeedTests(TestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_publishers_endpoint_returns_only_approved_from_subscribed_publishers(self):
+        """
+        Publisher subscription endpoint should return only APPROVED articles
+        from publishers the reader is subscribed to.
+
+        Returns:
+            None
+        """
         Article.objects.create(
             title="Approved A",
             body="Body",
@@ -83,6 +127,13 @@ class APIFeedTests(TestCase):
         self.assertEqual(titles, {"Approved A"})
 
     def test_journalists_endpoint_returns_only_approved_from_followed_journalists(self):
+        """
+        Followed journalists endpoint should return only APPROVED articles
+        authored by journalists the reader follows.
+
+        Returns:
+            None
+        """
         other_journ = User.objects.create_user(
             username="journ2",
             password="pass12345",
@@ -120,6 +171,16 @@ class APIFeedTests(TestCase):
         self.assertEqual(titles, {"Followed Approved"})
 
     def test_feed_endpoint_returns_union_without_duplicates(self):
+        """
+        Feed endpoint should return the union of:
+        - articles from subscribed publishers
+        - articles by followed journalists
+
+        ...without duplicates, and only if APPROVED.
+
+        Returns:
+            None
+        """
         Article.objects.create(
             title="From Pub A",
             body="Body",
@@ -167,7 +228,20 @@ class APIFeedTests(TestCase):
 
 
 class XPostingTests(TestCase):
+    """
+    Tests for the optional X posting integration.
+
+    Uses mocking to ensure that an HTTP request would be attempted when an
+    editor approves an article and X posting is enabled.
+    """
+
     def setUp(self):
+        """
+        Create baseline objects for X posting tests.
+
+        Returns:
+            None
+        """
         self.editor = User.objects.create_user(
             username="editor1",
             password="pass12345",
@@ -190,6 +264,15 @@ class XPostingTests(TestCase):
 
     @patch("core.services.x_client.requests.post")
     def test_post_to_x_attempted_on_approve_when_enabled(self, mock_post):
+        """
+        When X posting is enabled, approving an article should attempt a POST.
+
+        Args:
+            mock_post: Mocked requests.post function.
+
+        Returns:
+            None
+        """
         mock_post.return_value.raise_for_status.return_value = None
 
         self.client.login(username="editor1", password="pass12345")
