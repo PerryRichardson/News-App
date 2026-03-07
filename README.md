@@ -123,7 +123,8 @@ python manage.py runserver
 - Login as an **Editor** to approve/reject articles at `/editor/`.
 - Editors can create publishers in-app at `/publishers/new/`.
 - Journalists can submit articles at `/journalist/new/` (saved as **PENDING** until approved).
-    **Editor registration:** If your project uses an invite code, set `EDITOR_INVITE_CODE` in `src/config/settings.py` and enter it during registration when selecting Editor role.
+  
+**Editor registration:** If your project uses an invite code, set `EDITOR_INVITE_CODE` in `src/config/settings.py` and enter it during registration when selecting the Editor role.
 
 ### 7) Run tests:
 - Run from `src` folder
