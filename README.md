@@ -84,14 +84,16 @@ pip install -r requirements.txt
 ```
 ### 4) Database setup
  4.1) Ensure your **MySQL/MariaDB** server is running locally
- 4.2) Create the database and user (run in MySQL Workbench / admin client):
+ 4.2) Create the database and user
+
+Run the following in MySQL Workbench (or another SQL client):
 ```
 CREATE DATABASE IF NOT EXISTS news_db
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
 CREATE USER IF NOT EXISTS 'news_user'@'localhost'
-  IDENTIFIED BY 'StrongPassword123!';
+  IDENTIFIED BY 'StrongPassword123!'; -- example password (change for your machine)
 
 GRANT ALL PRIVILEGES ON news_db.* TO 'news_user'@'localhost';
 FLUSH PRIVILEGES;
@@ -117,10 +119,11 @@ python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
 ```
-### 6) First-time Setup in the Admin Site:
-1) Visit `/admin/`
-2) Create Publishers (so Journalists can select one when posting)
-3) Create users and assign roles (Reader / Journalist / Editor)
+### 6) First-time Setup (in the app):
+- Login as an **Editor** to approve/reject articles at `/editor/`.
+- Editors can create publishers in-app at `/publishers/new/`.
+- Journalists can submit articles at `/journalist/new/` (saved as **PENDING** until approved).
+    **Editor registration:** If your project uses an invite code, set `EDITOR_INVITE_CODE` in `src/config/settings.py` and enter it during registration when selecting Editor role.
 
 ### 7) Run tests:
 - Run from `src` folder
