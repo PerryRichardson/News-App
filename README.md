@@ -69,7 +69,7 @@ These instructions assume **Windows + PowerShell**.
 
 ### 1) Clone the repository
 ```powershell
-git clone <REPO_URL>
+git clone https://github.com/PerryRichardson/News-App.git
 cd News-App
 ```
 ### 2) Create + activate a virtual environment:
