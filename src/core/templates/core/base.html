@@ -58,8 +58,22 @@
       .btn:hover {
         background: #f7f7f7;
       }
+
+      .messages {
+        list-style: none;
+        padding-left: 0;
+        margin: 0 0 12px 0;
+      }
+
+      .messages li {
+        padding: 8px 10px;
+        border-radius: 8px;
+        background: #f7f7f7;
+        margin-bottom: 8px;
+      }
     </style>
   </head>
+
   <body>
     <nav class="nav">
       <div class="nav-left">
@@ -76,6 +90,7 @@
 
           {% if user.role == "EDITOR" %}
             <a class="nav-link" href="{% url 'core:editor_queue' %}">Editor Queue</a>
+            <a class="nav-link" href="{% url 'core:create_publisher' %}">New Publisher</a>
           {% endif %}
         {% endif %}
       </div>
@@ -100,9 +115,9 @@
     <hr />
 
     {% if messages %}
-      <ul>
+      <ul class="messages">
         {% for message in messages %}
-          <li>{{ message }}</li>
+          <li class="{{ message.tags }}">{{ message }}</li>
         {% endfor %}
       </ul>
       <hr />

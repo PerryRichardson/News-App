@@ -16,6 +16,18 @@ from rest_framework.test import APIClient
 from core.models import Article, Publisher, User
 
 
+def make_user(*, username: str, role: str, password: str = "pass1234"):
+    """
+    Create a user with a guaranteed-unique email for tests.
+    """
+    return User.objects.create_user(
+        username=username,
+        email=f"{username}@example.com",
+        password=password,
+        role=role,
+    )
+
+
 class APIFeedTests(TestCase):
     """
     Tests for the DRF subscription feed endpoints.
@@ -36,20 +48,20 @@ class APIFeedTests(TestCase):
         """
         self.client = APIClient()
 
-        self.reader = User.objects.create_user(
+        self.reader = make_user(
             username="reader1",
-            password="pass12345",
             role=User.Role.READER,
+            password="pass12345",
         )
-        self.journalist = User.objects.create_user(
+        self.journalist = make_user(
             username="journ1",
-            password="pass12345",
             role=User.Role.JOURNALIST,
-        )
-        self.editor = User.objects.create_user(
-            username="editor1",
             password="pass12345",
+        )
+        self.editor = make_user(
+            username="editor1",
             role=User.Role.EDITOR,
+            password="pass12345",
         )
 
         self.pub_a = Publisher.objects.create(name="Publisher A")
@@ -134,10 +146,10 @@ class APIFeedTests(TestCase):
         Returns:
             None
         """
-        other_journ = User.objects.create_user(
+        other_journ = make_user(
             username="journ2",
-            password="pass12345",
             role=User.Role.JOURNALIST,
+            password="pass12345",
         )
 
         Article.objects.create(
@@ -242,15 +254,15 @@ class XPostingTests(TestCase):
         Returns:
             None
         """
-        self.editor = User.objects.create_user(
+        self.editor = make_user(
             username="editor1",
-            password="pass12345",
             role=User.Role.EDITOR,
-        )
-        self.journalist = User.objects.create_user(
-            username="journ1",
             password="pass12345",
+        )
+        self.journalist = make_user(
+            username="journ1",
             role=User.Role.JOURNALIST,
+            password="pass12345",
         )
         self.publisher = Publisher.objects.create(name="Publisher A")
 

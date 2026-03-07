@@ -21,7 +21,7 @@ class Publisher(models.Model):
         description (str): Optional description/bio for the publisher.
     """
 
-    name = models.CharField(max_length=150)
+    name = models.CharField(max_length=150, unique=True)
     description = models.TextField(blank=True)
 
     def __str__(self) -> str:
@@ -64,6 +64,7 @@ class User(AbstractUser):
     )
 
     bio = models.TextField(blank=True)
+    email = models.EmailField(unique=True)
 
     subscribed_publishers = models.ManyToManyField(
         Publisher,
