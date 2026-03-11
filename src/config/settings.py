@@ -113,7 +113,7 @@ STATIC_URL = "static/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
-EDITOR_INVITE_CODE = "change-me"  # ideally load from env var later
+EDITOR_INVITE_CODE = "newsapp-editor-2026"  # ideally load from env var later
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = "no-reply@newsapp.local"
