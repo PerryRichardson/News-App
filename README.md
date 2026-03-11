@@ -120,7 +120,7 @@ CREATE DATABASE IF NOT EXISTS news_db
   COLLATE utf8mb4_unicode_ci;
 
 CREATE USER IF NOT EXISTS 'news_user'@'localhost'
-  IDENTIFIED BY 'StrongPassword123!';
+  IDENTIFIED BY 'StrongPassword123!'; -- example password (change for your machine)
 
 GRANT ALL PRIVILEGES ON news_db.* TO 'news_user'@'localhost';
 FLUSH PRIVILEGES;
