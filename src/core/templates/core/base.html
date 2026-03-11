@@ -79,20 +79,22 @@
       <div class="nav-left">
         <a class="nav-link" href="{% url 'core:article_list' %}">Home</a>
 
-        {% if user.is_authenticated %}
-          <a class="nav-link" href="{% url 'core:publisher_list' %}">Publishers</a>
-          <a class="nav-link" href="{% url 'core:journalist_list' %}">Journalists</a>
-          <a class="nav-link" href="{% url 'core:my_subscriptions' %}">My Subscriptions</a>
+{% if user.is_authenticated %}
+  {% if user.role == "READER" %}
+    <a class="nav-link" href="{% url 'core:publisher_list' %}">Publishers</a>
+    <a class="nav-link" href="{% url 'core:journalist_list' %}">Journalists</a>
+    <a class="nav-link" href="{% url 'core:my_subscriptions' %}">My Subscriptions</a>
+  {% endif %}
 
-          {% if user.role == "JOURNALIST" %}
-            <a class="nav-link" href="{% url 'core:journalist_dashboard' %}">Dashboard</a>
-          {% endif %}
+  {% if user.role == "JOURNALIST" %}
+    <a class="nav-link" href="{% url 'core:journalist_dashboard' %}">Dashboard</a>
+  {% endif %}
 
-          {% if user.role == "EDITOR" %}
-            <a class="nav-link" href="{% url 'core:editor_queue' %}">Editor Queue</a>
-            <a class="nav-link" href="{% url 'core:create_publisher' %}">New Publisher</a>
-          {% endif %}
-        {% endif %}
+  {% if user.role == "EDITOR" %}
+    <a class="nav-link" href="{% url 'core:editor_queue' %}">Editor Queue</a>
+    <a class="nav-link" href="{% url 'core:create_publisher' %}">New Publisher</a>
+  {% endif %}
+{% endif %}
       </div>
 
       <div class="nav-right">
