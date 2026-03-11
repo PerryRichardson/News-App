@@ -126,6 +126,10 @@ python manage.py runserver
   
 **Editor registration:** If your project uses an invite code, set `EDITOR_INVITE_CODE` in `src/config/settings.py` and enter it during registration when selecting the Editor role.
 
+### Test Accounts & Registration
+
+To register as an Editor, use the invite code: newsapp-editor-2026
+
 ### 7) Run tests:
 - Run from `src` folder
 ```
