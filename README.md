@@ -149,10 +149,7 @@ DATABASES = {
 
 ### 5) Run migrations and start the server
 
-From the `src/` folder:
-
 ```powershell
-cd src
 python manage.py migrate
 python manage.py runserver
 ```
