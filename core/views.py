@@ -258,11 +258,11 @@ def create_article(request):
     """
     if request.user.role != User.Role.JOURNALIST:
         return HttpResponseForbidden("Only journalists can create articles.")
-    
+
     Publisher.objects.get_or_create(
-    name="Independent",
-    defaults={"description": "Independent publisher"},
-)
+        name="Independent",
+        defaults={"description": "Independent publisher"},
+    )
 
     if request.method == "POST":
         form = ArticleForm(request.POST)
