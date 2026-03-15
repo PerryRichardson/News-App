@@ -1,4 +1,8 @@
 from pathlib import Path
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -7,12 +11,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-wg6@k6h_7147)j+^ii!$k1(*@(-h2a=2pxkwgd$)wcbh=6-ui-"
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-fallback-key-do-not-use-in-production",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost 127.0.0.1").split()
 
 # Application definition
 
@@ -65,11 +72,11 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "news_db",
-        "USER": "news_user",
-        "PASSWORD": "StrongPassword123!",
-        "HOST": "127.0.0.1",
-        "PORT": "3306",
+        "NAME": os.environ.get("DB_NAME", "news_db"),
+        "USER": os.environ.get("DB_USER", "news_user"),
+        "PASSWORD": os.environ.get("DB_PASSWORD", ""),
+        "HOST": os.environ.get("DB_HOST", "127.0.0.1"),
+        "PORT": os.environ.get("DB_PORT", "3306"),
         "OPTIONS": {"charset": "utf8mb4"},
     }
 }
@@ -113,7 +120,8 @@ STATIC_URL = "static/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
-EDITOR_INVITE_CODE = "newsapp-editor-2026"  # ideally load from env var later
+# Ideally load from env var
+EDITOR_INVITE_CODE = os.environ.get("EDITOR_INVITE_CODE", "newsapp-editor-2026")
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = "no-reply@newsapp.local"
@@ -125,6 +133,6 @@ REST_FRAMEWORK = {
 }
 
 # --- X posting (Phase F) ---
-X_POST_ENABLED = False  # set True only when you have credentials configured
-X_BEARER_TOKEN = ""  # put your token here (or load from env later)
+X_POST_ENABLED = False
+X_BEARER_TOKEN = os.environ.get("X_BEARER_TOKEN", "")
 X_API_URL = "https://api.x.com/2/tweets"
