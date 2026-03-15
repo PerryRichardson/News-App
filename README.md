@@ -53,7 +53,7 @@ Behavior:
 
 Fire-and-forget posting to X when an editor approves an article (off by default).
 
-Toggle in `src/config/settings.py`:
+Toggle in `config/settings.py`:
 ```python
 X_POST_ENABLED = False  # set True when credentials are configured
 X_BEARER_TOKEN = ""
@@ -70,22 +70,22 @@ X_API_URL = "https://api.x.com/2/tweets"
 - MariaDB / MySQL (local dev) on port 3306
 - mysqlclient 2.2.x
 - HTML & CSS via Django templates
+- Sphinx (documentation)
+- Docker (containerisation)
 
 ---
 
-## Getting Started (Step-by-step)
+## Getting Started — Option A: Virtual Environment (venv)
 
 These instructions assume **Windows + PowerShell**.
 
 ### 1) Clone the repository
-
 ```powershell
 git clone https://github.com/PerryRichardson/News-App.git
 cd News-App
 ```
 
 ### 2) Create and activate a virtual environment
-
 ```powershell
 py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
@@ -93,34 +93,45 @@ python -m pip install --upgrade pip
 ```
 
 ### 3) Install dependencies
-
 ```powershell
 pip install -r requirements.txt
 ```
 
-> `requirements.txt` includes `mysqlclient` and all other dependencies.
+### 4) Configure environment variables
 
-### 4) Database setup
+Create a `.env` file in the project root with the following content:
+```
+DJANGO_SECRET_KEY=your-secret-key-here
+DEBUG=True
+ALLOWED_HOSTS=localhost 127.0.0.1
+DB_NAME=news_db
+DB_USER=news_user
+DB_PASSWORD=your-database-password-here
+DB_HOST=127.0.0.1
+DB_PORT=3306
+EDITOR_INVITE_CODE=your-invite-code-here
+X_BEARER_TOKEN=
+```
 
-**4.1)** Ensure your MySQL/MariaDB server is running locally.
+> **Never commit your `.env` file to GitHub.** It is already listed in `.gitignore`.
 
-**4.2)** Open a terminal and log in to MySQL as root:
+### 5) Database setup
 
+**5.1)** Ensure your MySQL/MariaDB server is running locally.
+
+**5.2)** Open a terminal and log in to MySQL as root:
 ```bash
 mysql -u root -p
 ```
 
-Enter your root password when prompted.
-
-**4.3)** Run the following SQL commands to create the database and user:
-
+**5.3)** Run the following SQL commands:
 ```sql
 CREATE DATABASE IF NOT EXISTS news_db
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
 CREATE USER IF NOT EXISTS 'news_user'@'localhost'
-  IDENTIFIED BY 'StrongPassword123!'; -- example password (change for your machine)
+  IDENTIFIED BY 'your-password-here';
 
 GRANT ALL PRIVILEGES ON news_db.* TO 'news_user'@'localhost';
 FLUSH PRIVILEGES;
@@ -128,33 +139,15 @@ FLUSH PRIVILEGES;
 EXIT;
 ```
 
-> You can change `StrongPassword123!` to any password you prefer —
-> just make sure it matches the `PASSWORD` value in `settings.py`.
+> Use the same password you set in your `.env` file for `DB_PASSWORD`.
 
-**4.4)** Confirm the database settings in `src/config/settings.py` match your setup:
-
-```python
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": "news_db",
-        "USER": "news_user",
-        "PASSWORD": "StrongPassword123!",
-        "HOST": "127.0.0.1",
-        "PORT": "3306",
-        "OPTIONS": {"charset": "utf8mb4"},
-    }
-}
-```
-
-### 5) Run migrations and start the server
-
+### 6) Run migrations and start the server
 ```powershell
 python manage.py migrate
 python manage.py runserver
 ```
 
-### 6) Register your first accounts
+### 7) Register your first accounts
 
 Visit `http://127.0.0.1:8000/accounts/register/` to create accounts.
 
@@ -162,30 +155,24 @@ Visit `http://127.0.0.1:8000/accounts/register/` to create accounts.
 |---|---|---|
 | Reader | No | Default role |
 | Journalist | No | Can submit articles |
-| Editor | Yes — see below | Can approve/reject articles and create publishers |
+| Editor | Yes — see `.env` | Can approve/reject articles and create publishers |
 
-**Editor invite code:** `newsapp-editor-2026`
+> The editor invite code is set via `EDITOR_INVITE_CODE` in your `.env` file.
 
-> To change the invite code, update `EDITOR_INVITE_CODE` in `src/config/settings.py`.
+### 8) Recommended first-time setup flow
 
-### 7) Recommended first-time setup flow
-
-1. Register an **Editor** account (use the invite code above)
+1. Register an **Editor** account using the invite code from your `.env`
 2. Log in as Editor and create at least one **Publisher** at `/publishers/new/`
 3. Register a **Journalist** account and submit an article at `/journalist/new/`
 4. Log back in as **Editor** and approve the article at `/editor/`
 5. Register a **Reader** account, subscribe to the publisher, and view the feed
 
-### 8) Run tests
-
-From the `src/` folder:
-
+### 9) Run tests
 ```powershell
 python manage.py test -v 2
 ```
 
 If tests fail with database permission errors, grant the test database permissions:
-
 ```sql
 mysql -u root -p
 
@@ -195,6 +182,49 @@ FLUSH PRIVILEGES;
 
 EXIT;
 ```
+
+---
+
+## Getting Started — Option B: Docker
+
+These instructions assume you have **Docker Desktop** installed and running.
+
+### 1) Clone the repository
+```bash
+git clone https://github.com/PerryRichardson/News-App.git
+cd News-App
+```
+
+### 2) Configure environment variables
+
+Create a `.env` file in the project root (same as Option A above).
+
+### 3) Build the Docker image
+```bash
+docker build -t news-app .
+```
+
+### 4) Run the container
+```bash
+docker run --env-file .env -p 8000:8000 news-app
+```
+
+> This maps port 8000 on your machine to port 8000 inside the container.
+
+### 5) Access the app
+
+Visit `http://localhost:8000` in your browser.
+
+> **Note:** The Docker setup connects to your local MySQL database.
+> Ensure your database is running and `DB_HOST` in your `.env` is set
+> to `host.docker.internal` instead of `127.0.0.1` when running via Docker.
+
+---
+
+## Documentation
+
+This project uses Sphinx for documentation. The generated HTML docs are located in
+`docs/_build/html/`. Open `docs/_build/html/index.html` in your browser to view them.
 
 ---
 
